@@ -3,7 +3,8 @@ const api = typeof browser !== "undefined" ? browser : chrome;
 const DEFAULT_SETTINGS = {
 	mode: "blur",
 	blur: 10,
-	opacity: 0.92
+	opacity: 0.92,
+	radius: 12
 };
 
 const getActiveTab = () => new Promise((resolve) => {
@@ -45,6 +46,8 @@ const blurRange = document.querySelector("#blur");
 const blurValue = document.querySelector("#blur-value");
 const opacityRange = document.querySelector("#opacity");
 const opacityValue = document.querySelector("#opacity-value");
+const radiusRange = document.querySelector("#radius");
+const radiusValue = document.querySelector("#radius-value");
 const startButton = document.querySelector("#start");
 const clearButton = document.querySelector("#clear");
 const openPdfButton = document.querySelector("#open-pdf");
@@ -64,17 +67,26 @@ const updateUI = (settings) => {
 		opacityRange.value = Math.round(settings.opacity * 100);
 		setValueText(opacityValue, `${Math.round(settings.opacity * 100)}%`);
 	}
+	if (radiusRange) {
+		radiusRange.value = settings.radius;
+		setValueText(radiusValue, `${settings.radius}px`);
+	}
 };
 
 const readSettingsFromUI = () => ({
 	blur: Number(blurRange?.value || DEFAULT_SETTINGS.blur),
-	opacity: Number(opacityRange?.value || DEFAULT_SETTINGS.opacity * 100) / 100
+	opacity: Number(opacityRange?.value || DEFAULT_SETTINGS.opacity * 100) / 100,
+	radius: Number(radiusRange?.value || DEFAULT_SETTINGS.radius)
 });
 
 const handleSettingsChange = async () => {
 	const newSettings = readSettingsFromUI();
 	updateUI(newSettings);
 	await saveSettings(newSettings);
+	sendToActiveTab({
+		type: "SPOTLIGHT_UPDATE_SETTINGS",
+		payload: { settings: newSettings }
+	});
 };
 
 startButton?.addEventListener("click", async () => {
@@ -99,5 +111,6 @@ openPdfButton?.addEventListener("click", () => {
 
 blurRange?.addEventListener("input", handleSettingsChange);
 opacityRange?.addEventListener("input", handleSettingsChange);
+radiusRange?.addEventListener("input", handleSettingsChange);
 
 loadSettings().then(updateUI);
