@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Spotlight PDF Helper</title>
+    <link rel="stylesheet" href="pdf.css" />
+    <link rel="stylesheet" href="overlay.css" />
+  </head>
+  <body>
+    <header class="toolbar">
+      <!-- <div class="brand">
+        <span class="dot"></span>
+        <strong>Spotlight PDF</strong>
+      </div> -->
+      <div class="controls">
+        <input id="pdf-url" type="url" placeholder="Paste a PDF URL" />
+        <button id="load" class="ghost">Load PDF from URL</button>
+        <button id="load-local" class="ghost">Load local PDF</button>
+        <button id="start" class="primary">Select area</button>
+        <!-- <button id="clear" class="ghost">Clear</button> -->
+      </div>
+      <!-- <p class="hint">Paste a direct PDF link. This helper runs outside the built-in viewer.</p> -->
+    </header>
+
+    <main class="viewer">
+      <embed id="pdf-embed" type="application/pdf" />
+    </main>
+
+    <script src="content.js"></script>
+    <script src="pdf.js"></script>
+  </body>
+</html>

@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>Spotlight Focus</title>
+		<link rel="stylesheet" href="popup.css" />
+	</head>
+	<body>
+		<main class="panel">
+			<header class="hero">
+				<p class="eyebrow">Spotlight Focus</p>
+				<h1>Freeze a section and tune out everything else.</h1>
+				<p class="sub">Pick a region, keep it pinned, and scroll without losing focus.</p>
+			</header>
+
+			<section class="actions">
+				<button id="start" class="primary">Select area</button>
+				<button id="clear" class="ghost">Clear spotlight</button>
+			</section>
+
+			<section class="controls">
+				<div class="control">
+					<label for="mode">Mask style</label>
+					<select id="mode">
+						<option value="blur">Blur + white</option>
+						<option value="white">Soft white</option>
+					</select>
+				</div>
+
+				<div class="control">
+					<div class="control-row">
+						<label for="blur">Blur strength</label>
+						<span id="blur-value" class="value">10px</span>
+					</div>
+					<input id="blur" type="range" min="0" max="24" step="1" />
+				</div>
+
+				<div class="control">
+					<div class="control-row">
+						<label for="opacity">Mask opacity</label>
+						<span id="opacity-value" class="value">92%</span>
+					</div>
+					<input id="opacity" type="range" min="60" max="98" step="1" />
+				</div>
+			</section>
+
+			<footer class="note">
+				Tip: Press Esc while selecting to cancel the rectangle.
+			</footer>
+
+			<section class="pdf">
+				<button id="open-pdf" class="ghost">Open PDF helper</button>
+				<p class="pdf-note">Use this for PDFs that open in Firefox’s built-in viewer.</p>
+			</section>
+		</main>
+		<script src="popup.js"></script>
+	</body>
+</html>

@@ -1,0 +1,106 @@
+#spotlight-overlay-layer {
+  --spotlight-mask: rgba(255, 255, 255, 0.92);
+  --spotlight-blur: 10px;
+  --spotlight-border: rgba(0, 0, 0, 0.18);
+}
+
+#spotlight-selection-layer,
+#spotlight-overlay-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483646;
+  pointer-events: none;
+}
+
+#spotlight-selection-layer {
+  background: rgba(0, 0, 0, 0.1);
+  cursor: crosshair;
+  pointer-events: auto;
+}
+
+#spotlight-selection-rect {
+  position: fixed;
+  border: 2px dashed rgba(0, 0, 0, 0.65);
+  background: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 0 0 9999px rgba(255, 255, 255, 0.55);
+}
+
+#spotlight-mask {
+  position: fixed;
+  inset: 0;
+  background: var(--spotlight-mask);
+  backdrop-filter: blur(var(--spotlight-blur));
+}
+
+#spotlight-image {
+  position: fixed;
+  background: white;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--spotlight-border);
+  overflow: hidden;
+  pointer-events: auto;
+}
+
+#spotlight-image img {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+#spotlight-drag-handle {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.25);
+  background: rgba(255, 255, 255, 0.2);
+  color: rgba(17, 17, 17, 0.35);
+  cursor: grab;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
+  /* transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease; */
+}
+
+#spotlight-drag-handle svg {
+  width: 16px;
+  height: 16px;
+  display: block;
+}
+
+#spotlight-drag-handle:active {
+  cursor: grabbing;
+}
+
+#spotlight-drag-handle:hover,
+#spotlight-drag-handle:focus-visible {
+  background: rgba(255, 255, 255, 0.95);
+  color: #111;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.18);
+}
+
+#spotlight-clear-button {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 2147483647;
+  pointer-events: auto;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  background: white;
+  color: #111;
+  font-size: 12px;
+  font-family: system-ui, sans-serif;
+  cursor: pointer;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18);
+}
+
+#spotlight-clear-button:hover {
+  background: #f5f5f5;
+}
