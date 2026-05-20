@@ -2,6 +2,7 @@
   --spotlight-mask: rgba(255, 255, 255, 0.92);
   --spotlight-blur: 10px;
   --spotlight-border: rgba(0, 0, 0, 0.18);
+  --spotlight-radius: 12px;
 }
 
 #spotlight-selection-layer,
@@ -50,6 +51,7 @@
   background: white;
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
   border: 1px solid var(--spotlight-border);
+  border-radius: var(--spotlight-radius);
   overflow: hidden;
   pointer-events: auto;
 }

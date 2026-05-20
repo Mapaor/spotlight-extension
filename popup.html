@@ -9,8 +9,10 @@
 	<body>
 		<main class="panel">
 			<header class="hero">
-				<p class="eyebrow">Spotlight Focus</p>
-				<h1>Freeze a section and tune out everything else.</h1>
+				<div class="brand">
+					<span class="dot"></span>
+					<h1 class="eyebrow-heading">Spotlight Focus</h1>
+				</div>
 				<p class="sub">Pick a region, keep it pinned, and scroll without losing focus.</p>
 			</header>
 
@@ -19,7 +21,7 @@
 				<button id="clear" class="ghost">Clear all</button>
 			</section>
 
-			<p class="hint">Each selection adds a new pinned region (up to 10). Hover the top-right icon to remove a region.</p>
+			<p class="hint">Each selection adds a new pinned region (up to 10).</p>
 
 			<section class="controls">
 				<div class="control">
@@ -35,7 +37,15 @@
 						<label for="opacity">Mask opacity</label>
 						<span id="opacity-value" class="value">92%</span>
 					</div>
-					<input id="opacity" type="range" min="60" max="98" step="1" />
+					<input id="opacity" type="range" min="10" max="100" step="1" />
+				</div>
+
+				<div class="control">
+					<div class="control-row">
+						<label for="radius">Corner radius</label>
+						<span id="radius-value" class="value">12px</span>
+					</div>
+					<input id="radius" type="range" min="0" max="40" step="1" />
 				</div>
 			</section>
 

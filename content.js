@@ -3,7 +3,8 @@ const api = typeof browser !== "undefined" ? browser : chrome;
 const DEFAULT_SETTINGS = {
 	mode: "blur",
 	blur: 10,
-	opacity: 0.92
+	opacity: 0.92,
+	radius: 12
 };
 
 const MAX_REGIONS = 10;
@@ -52,14 +53,16 @@ const applySettings = () => {
 	if (!overlayLayer) {
 		return;
 	}
-	const maskAlpha = Math.min(0.98, Math.max(0.6, settings.opacity));
+	const maskAlpha = Math.min(1, Math.max(0.1, settings.opacity));
 	const blurValue = settings.mode === "white"
 		? 0
 		: Math.min(24, Math.max(0, settings.blur));
+	const radiusValue = Math.min(40, Math.max(0, settings.radius ?? 12));
 	const background = `rgba(255, 255, 255, ${maskAlpha})`;
 
 	overlayLayer.style.setProperty("--spotlight-mask", background);
 	overlayLayer.style.setProperty("--spotlight-blur", `${blurValue}px`);
+	overlayLayer.style.setProperty("--spotlight-radius", `${radiusValue}px`);
 };
 
 const clearSelectionLayer = () => {
@@ -401,6 +404,11 @@ api.runtime.onMessage.addListener((message) => {
 	if (message.type === "SPOTLIGHT_CLEAR") {
 		clearOverlay();
 		clearSelectionLayer();
+	}
+
+	if (message.type === "SPOTLIGHT_UPDATE_SETTINGS") {
+		settings = { ...settings, ...(message.payload?.settings || {}) };
+		applySettings();
 	}
 
 	return undefined;

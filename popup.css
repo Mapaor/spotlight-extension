@@ -16,13 +16,13 @@
 
 html,
 body {
-	width: 420px;
+	width: 360px;
 	max-width: 600px;
 }
 
 body {
 	margin: 0;
-	min-width: 300px;
+	min-width: 240px;
 	font-family: "Space Grotesk", sans-serif;
 	background: radial-gradient(circle at top, #fff2e3 0%, #ffe4cf 45%, #ffd9c0 100%);
 	color: var(--ink);
@@ -33,10 +33,10 @@ body {
 }
 
 .hero {
-	padding: 16px;
-	border-radius: 18px;
+	padding: 14px;
+	border-radius: 16px;
 	background: linear-gradient(135deg, #fff8f1 0%, #ffe4cf 100%);
-	box-shadow: 0 18px 40px rgba(209, 76, 32, 0.15);
+	box-shadow: 0 16px 32px rgba(209, 76, 32, 0.15);
 }
 
 .eyebrow {
@@ -48,10 +48,14 @@ body {
 	color: var(--accent-deep);
 }
 
-h1 {
-	margin: 0 0 8px;
-	font-family: "Fraunces", serif;
-	font-size: 20px;
+
+.eyebrow-heading {
+	margin: 0;
+	text-transform: uppercase;
+	letter-spacing: 0.14em;
+	font-size: 15px;
+	font-weight: 700;
+	color: var(--accent-deep);
 	line-height: 1.15;
 }
 
@@ -168,4 +172,21 @@ input[type="range"] {
 	margin: 0;
 	font-size: 11px;
 	color: var(--muted);
+}
+
+
+
+.brand {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	margin-bottom: 6px;
+}
+
+.dot {
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background: var(--accent);
+	box-shadow: 0 0 0 4px rgba(240, 107, 61, 0.25);
 }
