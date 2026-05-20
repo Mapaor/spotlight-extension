@@ -14,9 +14,15 @@
 	box-sizing: border-box;
 }
 
+html,
+body {
+	width: 420px;
+	max-width: 600px;
+}
+
 body {
 	margin: 0;
-	min-width: 320px;
+	min-width: 300px;
 	font-family: "Space Grotesk", sans-serif;
 	background: radial-gradient(circle at top, #fff2e3 0%, #ffe4cf 45%, #ffd9c0 100%);
 	color: var(--ink);
@@ -52,6 +58,12 @@ h1 {
 .sub {
 	margin: 0;
 	font-size: 12.5px;
+	color: var(--muted);
+}
+
+.hint {
+	margin: 0 6px 12px;
+	font-size: 11.5px;
 	color: var(--muted);
 }
 

@@ -6,20 +6,24 @@ const DEFAULT_SETTINGS = {
 	opacity: 0.92
 };
 
+const MAX_REGIONS = 10;
+
 let selectionLayer = null;
 let selectionRect = null;
 let overlayLayer = null;
 let maskEl = null;
-let imageEl = null;
-let dragHandle = null;
 let clearButton = null;
+let addButton = null;
+let toolbarEl = null;
 let isSelecting = false;
 let startPoint = null;
 let settings = { ...DEFAULT_SETTINGS };
 let dragState = null;
 let dragMoveHandler = null;
 let dragEndHandler = null;
-let dragHintTimeout = null;
+let dragHintTimeouts = new Map();
+let regions = [];
+let zIndexCounter = 1;
 
 const sendMessage = (payload) => {
 	if (api.runtime?.sendMessage) {
@@ -66,13 +70,17 @@ const clearSelectionLayer = () => {
 	}
 	isSelecting = false;
 	startPoint = null;
+	if (overlayLayer) {
+		overlayLayer.classList.remove("spotlight-selecting");
+		overlayLayer.classList.remove("spotlight-hidden");
+	}
 };
 
 const clearOverlay = () => {
-	if (dragHintTimeout) {
-		clearTimeout(dragHintTimeout);
-		dragHintTimeout = null;
+	for (const timeoutId of dragHintTimeouts.values()) {
+		clearTimeout(timeoutId);
 	}
+	dragHintTimeouts.clear();
 	if (dragMoveHandler) {
 		window.removeEventListener("mousemove", dragMoveHandler);
 		dragMoveHandler = null;
@@ -86,13 +94,52 @@ const clearOverlay = () => {
 	}
 	overlayLayer = null;
 	maskEl = null;
-	imageEl = null;
-	dragHandle = null;
 	if (clearButton) {
 		clearButton.remove();
 	}
 	clearButton = null;
+	if (addButton) {
+		addButton.remove();
+	}
+	addButton = null;
+	if (toolbarEl) {
+		toolbarEl.remove();
+	}
+	toolbarEl = null;
 	dragState = null;
+	regions = [];
+	zIndexCounter = 1;
+};
+
+const ensureOverlayLayer = () => {
+	if (overlayLayer) {
+		return;
+	}
+	overlayLayer = document.createElement("div");
+	overlayLayer.id = "spotlight-overlay-layer";
+
+	maskEl = document.createElement("div");
+	maskEl.id = "spotlight-mask";
+	overlayLayer.appendChild(maskEl);
+
+	toolbarEl = document.createElement("div");
+	toolbarEl.id = "spotlight-toolbar";
+
+	addButton = document.createElement("button");
+	addButton.id = "spotlight-add-button";
+	addButton.textContent = "Add new area";
+	addButton.addEventListener("click", () => startSelection(settings));
+
+	clearButton = document.createElement("button");
+	clearButton.id = "spotlight-clear-button";
+	clearButton.textContent = "Clear spotlight";
+	clearButton.addEventListener("click", clearOverlay);
+
+	toolbarEl.appendChild(addButton);
+	toolbarEl.appendChild(clearButton);
+
+	document.documentElement.appendChild(overlayLayer);
+	document.documentElement.appendChild(toolbarEl);
 };
 
 const clampRect = (rect) => {
@@ -135,8 +182,14 @@ const startSelection = async (incomingSettings) => {
 		return;
 	}
 	settings = { ...DEFAULT_SETTINGS, ...(incomingSettings || {}) };
-	clearOverlay();
+	if (regions.length >= MAX_REGIONS) {
+		return;
+	}
 	createSelectionLayer();
+	if (overlayLayer) {
+		overlayLayer.classList.add("spotlight-selecting");
+		overlayLayer.classList.add("spotlight-hidden");
+	}
 	isSelecting = true;
 
 	const onMouseDown = (event) => {
@@ -170,16 +223,22 @@ const startSelection = async (incomingSettings) => {
 			return;
 		}
 
+		if (overlayLayer) {
+			overlayLayer.classList.add("spotlight-hidden");
+		}
 		const response = await sendMessage({
 			type: "SPOTLIGHT_CAPTURE",
 			payload: { rect, dpr: window.devicePixelRatio || 1 }
 		});
+		if (overlayLayer) {
+			overlayLayer.classList.remove("spotlight-hidden");
+		}
 
 		if (!response || !response.ok) {
 			return;
 		}
 
-		renderOverlay(rect, response.dataUrl);
+		addRegion(rect, response.dataUrl);
 	};
 
 	const onKeyDown = (event) => {
@@ -194,26 +253,7 @@ const startSelection = async (incomingSettings) => {
 	window.addEventListener("keydown", onKeyDown, { once: true });
 };
 
-const renderOverlay = (rect, dataUrl) => {
-	clearOverlay();
-	overlayLayer = document.createElement("div");
-	overlayLayer.id = "spotlight-overlay-layer";
-
-	maskEl = document.createElement("div");
-	maskEl.id = "spotlight-mask";
-
-	imageEl = document.createElement("div");
-	imageEl.id = "spotlight-image";
-	imageEl.style.left = `${rect.x}px`;
-	imageEl.style.top = `${rect.y}px`;
-	imageEl.style.width = `${rect.width}px`;
-	imageEl.style.height = `${rect.height}px`;
-
-	dragHandle = document.createElement("button");
-	dragHandle.id = "spotlight-drag-handle";
-	dragHandle.type = "button";
-	dragHandle.setAttribute("aria-label", "Drag spotlight");
-
+const createDragIcon = () => {
 	const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
 	svg.setAttribute("viewBox", "0 0 24 24");
 	svg.setAttribute("aria-hidden", "true");
@@ -226,13 +266,71 @@ const renderOverlay = (rect, dataUrl) => {
 	);
 
 	svg.appendChild(path);
-	dragHandle.appendChild(svg);
+	return svg;
+};
+
+const createRemoveIcon = () => {
+	const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+	svg.setAttribute("viewBox", "0 0 24 24");
+	svg.setAttribute("aria-hidden", "true");
+
+	const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+	path.setAttribute("fill", "currentColor");
+	path.setAttribute("d", "M6.4 6.4a.85.85 0 0 1 1.2 0L12 10.8l4.4-4.4a.85.85 0 1 1 1.2 1.2L13.2 12l4.4 4.4a.85.85 0 0 1-1.2 1.2L12 13.2l-4.4 4.4a.85.85 0 1 1-1.2-1.2L10.8 12 6.4 7.6a.85.85 0 0 1 0-1.2");
+
+	svg.appendChild(path);
+	return svg;
+};
+
+const scheduleHint = (button) => {
+	button.classList.add("spotlight-hint");
+	const timeoutId = window.setTimeout(() => {
+		button.classList.remove("spotlight-hint");
+		dragHintTimeouts.delete(button);
+	}, 1000);
+	dragHintTimeouts.set(button, timeoutId);
+};
+
+const addRegion = (rect, dataUrl) => {
+	ensureOverlayLayer();
+	applySettings();
+	overlayLayer.classList.remove("spotlight-selecting");
+
+	const regionEl = document.createElement("div");
+	regionEl.className = "spotlight-region";
+	regionEl.style.left = `${rect.x}px`;
+	regionEl.style.top = `${rect.y}px`;
+	regionEl.style.width = `${rect.width}px`;
+	regionEl.style.height = `${rect.height}px`;
+	regionEl.style.zIndex = String(zIndexCounter++);
+
+	const img = document.createElement("img");
+	img.src = dataUrl;
+	img.alt = "Spotlight";
+	regionEl.appendChild(img);
+
+	const dragHandle = document.createElement("button");
+	dragHandle.className = "spotlight-drag-handle";
+	dragHandle.type = "button";
+	dragHandle.setAttribute("aria-label", "Drag spotlight");
+	dragHandle.appendChild(createDragIcon());
+
+	const removeButton = document.createElement("button");
+	removeButton.className = "spotlight-remove-button";
+	removeButton.type = "button";
+	removeButton.setAttribute("aria-label", "Remove spotlight");
+	removeButton.appendChild(createRemoveIcon());
+
+	const region = { element: regionEl, dragHandle, removeButton };
+	regions.push(region);
 
 	dragHandle.addEventListener("mousedown", (event) => {
 		event.preventDefault();
 		event.stopPropagation();
-		const rectSnapshot = imageEl.getBoundingClientRect();
+		const rectSnapshot = regionEl.getBoundingClientRect();
+		regionEl.style.zIndex = String(zIndexCounter++);
 		dragState = {
+			element: regionEl,
 			offsetX: event.clientX - rectSnapshot.left,
 			offsetY: event.clientY - rectSnapshot.top,
 			width: rectSnapshot.width,
@@ -240,50 +338,55 @@ const renderOverlay = (rect, dataUrl) => {
 		};
 	});
 
-	dragMoveHandler = (event) => {
-		if (!dragState || !imageEl) {
-			return;
+	removeButton.addEventListener("click", (event) => {
+		event.preventDefault();
+		event.stopPropagation();
+		regionEl.remove();
+		regions = regions.filter((entry) => entry !== region);
+		const dragTimeout = dragHintTimeouts.get(dragHandle);
+		if (dragTimeout) {
+			clearTimeout(dragTimeout);
+			dragHintTimeouts.delete(dragHandle);
 		}
-		const maxLeft = Math.max(0, window.innerWidth - dragState.width);
-		const maxTop = Math.max(0, window.innerHeight - dragState.height);
-		const nextLeft = Math.min(Math.max(0, event.clientX - dragState.offsetX), maxLeft);
-		const nextTop = Math.min(Math.max(0, event.clientY - dragState.offsetY), maxTop);
-		imageEl.style.left = `${nextLeft}px`;
-		imageEl.style.top = `${nextTop}px`;
-	};
+		const removeTimeout = dragHintTimeouts.get(removeButton);
+		if (removeTimeout) {
+			clearTimeout(removeTimeout);
+			dragHintTimeouts.delete(removeButton);
+		}
+		if (regions.length === 0) {
+			clearOverlay();
+		}
+	});
 
-	dragEndHandler = () => {
-		dragState = null;
-	};
+	regionEl.appendChild(dragHandle);
+	regionEl.appendChild(removeButton);
 
-	window.addEventListener("mousemove", dragMoveHandler);
-	window.addEventListener("mouseup", dragEndHandler);
+	overlayLayer.appendChild(regionEl);
 
-	const img = document.createElement("img");
-	img.src = dataUrl;
-	img.alt = "Spotlight";
-	imageEl.appendChild(img);
-	imageEl.appendChild(dragHandle);
-	dragHandle.classList.add("spotlight-hint");
-	if (dragHintTimeout) {
-		clearTimeout(dragHintTimeout);
+	scheduleHint(dragHandle);
+	scheduleHint(removeButton);
+
+	if (!dragMoveHandler) {
+		dragMoveHandler = (event) => {
+			if (!dragState || !dragState.element) {
+				return;
+			}
+			const maxLeft = Math.max(0, window.innerWidth - dragState.width);
+			const maxTop = Math.max(0, window.innerHeight - dragState.height);
+			const nextLeft = Math.min(Math.max(0, event.clientX - dragState.offsetX), maxLeft);
+			const nextTop = Math.min(Math.max(0, event.clientY - dragState.offsetY), maxTop);
+			dragState.element.style.left = `${nextLeft}px`;
+			dragState.element.style.top = `${nextTop}px`;
+		};
+		window.addEventListener("mousemove", dragMoveHandler);
 	}
-	dragHintTimeout = window.setTimeout(() => {
-		dragHandle?.classList.remove("spotlight-hint");
-		dragHintTimeout = null;
-	}, 2000);
 
-	overlayLayer.appendChild(maskEl);
-	overlayLayer.appendChild(imageEl);
-	document.documentElement.appendChild(overlayLayer);
-
-	clearButton = document.createElement("button");
-	clearButton.id = "spotlight-clear-button";
-	clearButton.textContent = "Clear spotlight";
-	clearButton.addEventListener("click", clearOverlay);
-	document.documentElement.appendChild(clearButton);
-
-	applySettings();
+	if (!dragEndHandler) {
+		dragEndHandler = () => {
+			dragState = null;
+		};
+		window.addEventListener("mouseup", dragEndHandler);
+	}
 };
 
 api.runtime.onMessage.addListener((message) => {

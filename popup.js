@@ -41,7 +41,6 @@ const saveSettings = (settings) => {
 	return api.storage.local.set({ spotlightSettings: settings });
 };
 
-const modeSelect = document.querySelector("#mode");
 const blurRange = document.querySelector("#blur");
 const blurValue = document.querySelector("#blur-value");
 const opacityRange = document.querySelector("#opacity");
@@ -57,9 +56,6 @@ const setValueText = (el, value) => {
 };
 
 const updateUI = (settings) => {
-	if (modeSelect) {
-		modeSelect.value = settings.mode;
-	}
 	if (blurRange) {
 		blurRange.value = settings.blur;
 		setValueText(blurValue, `${settings.blur}px`);
@@ -71,7 +67,6 @@ const updateUI = (settings) => {
 };
 
 const readSettingsFromUI = () => ({
-	mode: modeSelect?.value || "blur",
 	blur: Number(blurRange?.value || DEFAULT_SETTINGS.blur),
 	opacity: Number(opacityRange?.value || DEFAULT_SETTINGS.opacity * 100) / 100
 });
@@ -102,7 +97,6 @@ openPdfButton?.addEventListener("click", () => {
 	api.tabs.create({ url: api.runtime.getURL("pdf.html") });
 });
 
-modeSelect?.addEventListener("change", handleSettingsChange);
 blurRange?.addEventListener("input", handleSettingsChange);
 opacityRange?.addEventListener("input", handleSettingsChange);
 
