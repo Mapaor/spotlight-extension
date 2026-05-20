@@ -19,6 +19,7 @@ let settings = { ...DEFAULT_SETTINGS };
 let dragState = null;
 let dragMoveHandler = null;
 let dragEndHandler = null;
+let dragHintTimeout = null;
 
 const sendMessage = (payload) => {
 	if (api.runtime?.sendMessage) {
@@ -68,6 +69,10 @@ const clearSelectionLayer = () => {
 };
 
 const clearOverlay = () => {
+	if (dragHintTimeout) {
+		clearTimeout(dragHintTimeout);
+		dragHintTimeout = null;
+	}
 	if (dragMoveHandler) {
 		window.removeEventListener("mousemove", dragMoveHandler);
 		dragMoveHandler = null;
@@ -259,6 +264,14 @@ const renderOverlay = (rect, dataUrl) => {
 	img.alt = "Spotlight";
 	imageEl.appendChild(img);
 	imageEl.appendChild(dragHandle);
+	dragHandle.classList.add("spotlight-hint");
+	if (dragHintTimeout) {
+		clearTimeout(dragHintTimeout);
+	}
+	dragHintTimeout = window.setTimeout(() => {
+		dragHandle?.classList.remove("spotlight-hint");
+		dragHintTimeout = null;
+	}, 2000);
 
 	overlayLayer.appendChild(maskEl);
 	overlayLayer.appendChild(imageEl);

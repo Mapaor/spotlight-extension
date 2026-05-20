@@ -48,6 +48,7 @@
 }
 
 #spotlight-drag-handle {
+  background: rgba(255, 255, 255, 0.0);
   position: absolute;
   top: 8px;
   left: 8px;
@@ -56,15 +57,15 @@
   padding: 0;
   border-radius: 8px;
   border: 1px solid rgba(0, 0, 0, 0.25);
-  background: rgba(255, 255, 255, 0.2);
   color: rgba(17, 17, 17, 0.35);
   cursor: grab;
   display: flex;
   align-items: center;
   justify-content: center;
   line-height: 1;
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
-  /* transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease; */
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.00);
+  opacity: 0;
+  transition: opacity 0.4s ease, background 0.05s ease, color 0.05s ease, box-shadow 0.15s ease;
 }
 
 #spotlight-drag-handle svg {
@@ -77,9 +78,11 @@
   cursor: grabbing;
 }
 
+#spotlight-drag-handle.spotlight-hint,
 #spotlight-drag-handle:hover,
 #spotlight-drag-handle:focus-visible {
-  background: rgba(255, 255, 255, 0.95);
+  opacity: 1;
+  background: rgba(255, 255, 255, 1);
   color: #111;
   box-shadow: 0 6px 14px rgba(0, 0, 0, 0.18);
 }
