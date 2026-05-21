@@ -28,7 +28,12 @@ This repository is meant to be very simple to locally test both in Firefox and C
 
 
 ## How it works technically
-This extension injects a content script (`content.js`) into normal pages and the extension helper page to provide the rectangle selection UI, render the masked overlay, and display a pinned snapshot of the selected region without altering the original page. Screen capture works thanks to `background.js` which uses the privileged `tabs.captureVisibleTab` API, crops for device pixel ratio, and returns a PNG data URL to the content script — this keeps privileged actions out of page context. Firefox’s built-in PDF viewer prevents content scripts from running, so we include a small helper page (`pdf.html`) that embeds PDFs (or accepts local `blob:` files) where the same content script can operate. The manifest only needs `storage`, `tabs`, and `activeTab` permissions; the extension pages CSP permits `blob:` to allow local PDF blobs to be embedded using a file picker.
+- The content script (`content.js`) provides the functionality of drawing the selection (the dashed rectangle), and generating the masked overlay (using css).
+- The actual screenshot (spotlighted area) is done in the background script (`background.js`). We obtain the pixels using the `tabs.captureVisibleTab` API and then we crop for device pixel ratio.
+- The data is passed to the content script via a URL that contains the PNG data.
+- Because Firefox’s and Chrome's built-in PDF viewer ([pdf.js](https://github.com/mozilla/pdf.js)) prevents content scripts from running, we need an extension's own page (`pdf.html`) that acts as a wrapper over the PDF (using the `iframe` tag), which accepts both local `blob:` files (loaded using a file picker) or external PDFs (loaded via URL fetching).
+- The manifest only needs `storage`, `tabs`, and `activeTab` permissions.
+- The extension manifest explicitally sets the CSP (Content Security Policy) to allow local PDF blobs to be embedded in the extension's own page.
 
 ## Features to implement
 - [X] Add sliders to customize the spotlight effect (opacity, blur and border-radius)
