@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Spotlight Focus",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Focus on a specific part of the page without getting distracted. Good for people with ADHD.",
   "icons": {
     "32": "icon32.png",
