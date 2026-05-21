@@ -12,7 +12,7 @@ const loadButton = document.querySelector("#load");
 const startButton = document.querySelector("#start");
 const clearButton = document.querySelector("#clear");
 const loadLocalButton = document.querySelector("#load-local");
-const pdfEmbed = document.querySelector("#pdf-embed");
+let pdfEmbed = document.querySelector("#pdf-embed");
 let localObjectUrl = "";
 
 const loadSettings = () => {
@@ -37,11 +37,27 @@ const getUrlFromQuery = () => {
   return params.get("url") || "";
 };
 
-const setPdfSource = (url) => {
+const replacePdfEmbed = (url) => {
   if (!pdfEmbed) {
     return;
   }
-  pdfEmbed.src = url;
+  const next = pdfEmbed.cloneNode(false);
+  next.src = url;
+  pdfEmbed.replaceWith(next);
+  pdfEmbed = next;
+};
+
+const setPdfSource = (url) => {
+  if (!pdfEmbed || !url) {
+    return;
+  }
+  if (pdfEmbed.src === url) {
+    return;
+  }
+  replacePdfEmbed("about:blank");
+  requestAnimationFrame(() => {
+    replacePdfEmbed(url);
+  });
 };
 
 const setLocalPdfSource = (file) => {

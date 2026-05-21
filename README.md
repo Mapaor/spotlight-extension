@@ -1,5 +1,13 @@
 # Spotlight Focus
-A Firefox extension to spotlight a part of a website page. Also works with PDFs.
+A Firefox and Chrome extension to spotlight a part of a website page. Also works with PDFs.
+
+## Firefox vs Chrome
+This repository is meant to be directly pluggable to Firefox, simply load the `manifest.json` inside the `about:debugging` URL (in the 'This Firefox' tab).
+
+This is also quite straightforward with Chrome. Simply do the following rename of files:
+-  `manifest.json` to `manifest.firefox.json`
+-  `manifest.chrome.json` to `manifest.json`
+And load the whole folder unpacked.
 
 ## How to use it
 Screenshot a region of the website and choose the opacity and blur of the rest of the page. You can also drag and drop the spotlighted region to pin it wherever you need to.

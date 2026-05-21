@@ -1,0 +1,40 @@
+{
+  "manifest_version": 3,
+  "name": "Spotlight Focus",
+  "version": "1.2.0",
+  "description": "Focus on a specific part of the page without getting distracted. Good for people with ADHD.",
+  "icons": {
+    "32": "icon32.png",
+    "48": "icon48.png",
+    "64": "icon64.png"
+  },
+  "permissions": [
+    "storage",
+    "tabs",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": [
+        "polyfill/browser-polyfill.min.js",
+        "content.js"
+      ],
+      "css": ["overlay.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_title": "Spotlight Focus",
+    "default_popup": "popup.html"
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'; frame-src https: http: blob:; img-src 'self' data: https: http: blob:"
+  }
+}

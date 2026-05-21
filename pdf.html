@@ -24,9 +24,10 @@
     </header>
 
     <main class="viewer">
-      <embed id="pdf-embed" type="application/pdf" />
+      <iframe id="pdf-embed" class="pdf-frame" title="PDF viewer" loading="lazy"></iframe>
     </main>
 
+    <script src="polyfill/browser-polyfill.min.js"></script>
     <script src="content.js"></script>
     <script src="pdf.js"></script>
   </body>

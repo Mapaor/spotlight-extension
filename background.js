@@ -1,3 +1,7 @@
+if (typeof importScripts === "function") {
+	importScripts("polyfill/browser-polyfill.min.js");
+}
+
 const api = typeof browser !== "undefined" ? browser : chrome;
 
 const toBase64 = (buffer) => {
@@ -10,8 +14,36 @@ const toBase64 = (buffer) => {
 	return btoa(binary);
 };
 
+const captureVisibleTab = () => {
+	if (!api.tabs?.captureVisibleTab) {
+		return Promise.reject(new Error("captureVisibleTab unavailable"));
+	}
+	try {
+		const result = api.tabs.captureVisibleTab(null, { format: "png" });
+		if (result && typeof result.then === "function") {
+			return result;
+		}
+	} catch (error) {
+		return Promise.reject(error);
+	}
+	return new Promise((resolve, reject) => {
+		api.tabs.captureVisibleTab(null, { format: "png" }, (dataUrl) => {
+			const err = api.runtime?.lastError;
+			if (err) {
+				reject(err);
+				return;
+			}
+			if (!dataUrl) {
+				reject(new Error("Empty capture data"));
+				return;
+			}
+			resolve(dataUrl);
+		});
+	});
+};
+
 const captureAndCrop = async (rect, dpr) => {
-	const dataUrl = await api.tabs.captureVisibleTab(null, { format: "png" });
+	const dataUrl = await captureVisibleTab();
 	const sourceBlob = await (await fetch(dataUrl)).blob();
 	const bitmap = await createImageBitmap(sourceBlob);
 

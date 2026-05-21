@@ -86,7 +86,7 @@ button {
   padding: 18px 20px;
 }
 
-#pdf-embed {
+.pdf-frame {
   width: 100%;
   height: calc(100vh - 100px);
   border: 0;
@@ -100,7 +100,7 @@ button {
     grid-template-columns: 1fr 1fr;
   }
 
-  #pdf-embed {
+  .pdf-frame {
     height: calc(100vh - 230px);
   }
 }

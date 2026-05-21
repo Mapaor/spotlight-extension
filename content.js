@@ -66,11 +66,20 @@ const applySettings = () => {
 };
 
 const clearSelectionLayer = () => {
+	const staleLayers = Array.from(document.querySelectorAll("#spotlight-selection-layer"));
+	const staleRects = Array.from(document.querySelectorAll("#spotlight-selection-rect"));
 	if (selectionLayer) {
 		selectionLayer.remove();
-		selectionLayer = null;
-		selectionRect = null;
 	}
+	for (const node of staleLayers) {
+		node.remove();
+	}
+	for (const node of staleRects) {
+		node.remove();
+	}
+	selectionLayer = null;
+	selectionRect = null;
+	
 	isSelecting = false;
 	startPoint = null;
 	if (overlayLayer) {
@@ -163,6 +172,7 @@ const createSelectionLayer = () => {
 	selectionRect.id = "spotlight-selection-rect";
 	selectionLayer.appendChild(selectionRect);
 	document.documentElement.appendChild(selectionLayer);
+	
 };
 
 const updateSelectionRect = (currentPoint) => {
@@ -184,6 +194,7 @@ const startSelection = async (incomingSettings) => {
 	if (isSelecting) {
 		return;
 	}
+	const waitForNextFrame = () => new Promise((resolve) => requestAnimationFrame(resolve));
 	settings = { ...DEFAULT_SETTINGS, ...(incomingSettings || {}) };
 	if (regions.length >= MAX_REGIONS) {
 		return;
@@ -195,23 +206,42 @@ const startSelection = async (incomingSettings) => {
 	}
 	isSelecting = true;
 
-	const onMouseDown = (event) => {
-		event.preventDefault();
-		startPoint = { x: event.clientX, y: event.clientY };
-		updateSelectionRect(startPoint);
+	const cleanupSelectionListeners = () => {
+		selectionLayer?.removeEventListener("pointermove", onPointerMove);
+		selectionLayer?.removeEventListener("pointerup", onPointerUp);
+		selectionLayer?.removeEventListener("pointercancel", onPointerCancel);
+		selectionLayer?.removeEventListener("lostpointercapture", onPointerCancel);
+		window.removeEventListener("pointerup", onPointerUp, true);
+		window.removeEventListener("pointercancel", onPointerCancel, true);
+		window.removeEventListener("blur", onWindowBlur);
 	};
 
-	const onMouseMove = (event) => {
+	const onPointerDown = (event) => {
+		event.preventDefault();
+		selectionLayer?.setPointerCapture(event.pointerId);
+		startPoint = { x: event.clientX, y: event.clientY };
+		updateSelectionRect(startPoint);
+		
+	};
+
+	const onPointerMove = (event) => {
 		if (!startPoint) {
 			return;
 		}
 		updateSelectionRect({ x: event.clientX, y: event.clientY });
 	};
 
-	const onMouseUp = async (event) => {
-		if (!startPoint) {
+	let selectionFinalized = false;
+
+	const finalizeSelection = async (event) => {
+		if (selectionFinalized || !startPoint) {
+			cleanupSelectionListeners();
 			return;
 		}
+		selectionFinalized = true;
+		cleanupSelectionListeners();
+		selectionLayer?.releasePointerCapture(event.pointerId);
+		
 		const endPoint = { x: event.clientX, y: event.clientY };
 		const rawRect = {
 			x: Math.min(startPoint.x, endPoint.x),
@@ -226,33 +256,70 @@ const startSelection = async (incomingSettings) => {
 			return;
 		}
 
+		const prevOverlayDisplay = overlayLayer?.style.display || "";
+		const prevToolbarDisplay = toolbarEl?.style.display || "";
 		if (overlayLayer) {
 			overlayLayer.classList.add("spotlight-hidden");
+			overlayLayer.style.display = "none";
 		}
+		if (toolbarEl) {
+			toolbarEl.style.display = "none";
+		}
+		await waitForNextFrame();
+		await waitForNextFrame();
 		const response = await sendMessage({
 			type: "SPOTLIGHT_CAPTURE",
 			payload: { rect, dpr: window.devicePixelRatio || 1 }
 		});
 		if (overlayLayer) {
+			overlayLayer.style.display = prevOverlayDisplay;
 			overlayLayer.classList.remove("spotlight-hidden");
+		}
+		if (toolbarEl) {
+			toolbarEl.style.display = prevToolbarDisplay;
 		}
 
 		if (!response || !response.ok) {
+			console.warn("Spotlight capture failed", response?.error);
 			return;
 		}
 
 		addRegion(rect, response.dataUrl);
 	};
 
+	const onPointerUp = async (event) => {
+		await finalizeSelection(event);
+	};
+
+	const onPointerCancel = (event) => {
+		cleanupSelectionListeners();
+		selectionLayer?.releasePointerCapture(event.pointerId);
+		clearSelectionLayer();
+		
+	};
+
+	const onWindowBlur = () => {
+		cleanupSelectionListeners();
+		clearSelectionLayer();
+		
+	};
+
 	const onKeyDown = (event) => {
 		if (event.key === "Escape") {
+			cleanupSelectionListeners();
 			clearSelectionLayer();
+			
 		}
 	};
 
-	selectionLayer.addEventListener("mousedown", onMouseDown, { once: true });
-	selectionLayer.addEventListener("mousemove", onMouseMove);
-	selectionLayer.addEventListener("mouseup", onMouseUp, { once: true });
+	selectionLayer.addEventListener("pointerdown", onPointerDown, { once: true });
+	selectionLayer.addEventListener("pointermove", onPointerMove);
+	selectionLayer.addEventListener("pointerup", onPointerUp);
+	selectionLayer.addEventListener("pointercancel", onPointerCancel);
+	selectionLayer.addEventListener("lostpointercapture", onPointerCancel);
+	window.addEventListener("pointerup", onPointerUp, true);
+	window.addEventListener("pointercancel", onPointerCancel, true);
+	window.addEventListener("blur", onWindowBlur);
 	window.addEventListener("keydown", onKeyDown, { once: true });
 };
 
