@@ -11,8 +11,6 @@ Screenshot a region of the website and choose the opacity and blur of the rest o
 - Highlight a button, form field or section of a page to take a screenshot of it. For example while creating guides or articles explaining how to use certain websites/platforms.
 
 ## Example usage video
-A 1 minute video showcasing the main features of the extension.
-
 https://github.com/user-attachments/assets/0513ab3e-5f0d-43a4-b792-64e84eebc111
 
 
