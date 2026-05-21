@@ -10,6 +10,13 @@ Screenshot a region of the website and choose the opacity and blur of the rest o
 - Organize a set of useful formula equations you find in different parts of a PDF
 - Highlight a button, form field or section of a page to take a screenshot of it. For example while creating guides or articles explaining how to use certain websites/platforms.
 
+## Example usage video
+A 1 minute video showcasing the main features of the extension.
+
+https://github.com/user-attachments/assets/0513ab3e-5f0d-43a4-b792-64e84eebc111
+
+
+
 ## Local testing
 This repository is meant to be very simple to locally test both in Firefox and Chrome. There is no build step, simply two different manifests but the source code stays the same (thanks to the polyfill library).
 
