@@ -13,13 +13,20 @@
     "tabs",
     "activeTab"
   ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
   "background": {
-    "scripts": ["background.js"]
+    "scripts": [
+      "polyfill/browser-polyfill.min.js",
+      "background.js"
+    ]
   },
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
       "js": [
+        "polyfill/browser-polyfill.min.js",
         "content.js"
       ],
       "css": ["overlay.css"],
@@ -31,9 +38,9 @@
     "default_popup": "popup.html"
   },
   "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'self' https: http: blob:; frame-src https: http: blob:; img-src 'self' data: https: http: blob:"
+    "extension_pages": "script-src 'self'; object-src 'self'; frame-src https: http: blob:; img-src 'self' data: https: http: blob:"
   },
-        "browser_specific_settings": {
+  "browser_specific_settings": {
     "gecko": {
       "id": "spotlight-focus@mapaor",
       "data_collection_permissions": {
